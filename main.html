@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiwix Discovery — Find Knowledge by Intent</title>
+<style>
+:root {
+  --bg:#f7f8fc; --surface:#fff; --ink:#1b1b32;
+  --muted:#777990; --line:#e9e9f1; --purple:#6554df;
+  --pale:#f0edff; --green:#168765; --shadow:0 8px 30px #25234b0a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:3px solid #a9a0ff;outline-offset:2px}
+.app{min-height:100vh}
+header{height:72px;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5%;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:800}
+.logo{width:39px;height:39px;border-radius:12px;background:var(--purple);
+  color:white;display:grid;place-items:center;font-size:22px}
+.brand small{display:block;color:var(--muted);font-size:10px;
+  letter-spacing:1.4px;font-weight:650}
+nav{display:flex;gap:5px}
+.navbtn{border:0;background:transparent;color:var(--muted);
+  padding:10px 13px;border-radius:9px;font-weight:650}
+.navbtn.active,.navbtn:hover{background:var(--pale);color:var(--purple)}
+.header-right{display:flex;align-items:center;gap:12px}
+.avatar{width:35px;height:35px;border-radius:50%;background:#e6e0ff;
+  color:var(--purple);display:grid;place-items:center;font-weight:800}
+main{max-width:1320px;margin:auto;padding:34px 5% 65px}
+.eyebrow{color:var(--purple);font-size:11px;font-weight:800;
+  letter-spacing:1.8px;text-transform:uppercase}
+h1{font-size:clamp(30px,4vw,46px);line-height:1.13;letter-spacing:-1.7px;
+  margin:12px 0}
+h2{font-size:23px;letter-spacing:-.6px;margin:0}
+h3{font-size:15px;margin:0}
+p{margin:0}
+.muted{color:var(--muted)}
+.hero{padding:20px 0 28px;max-width:820px}
+.hero h1 span{color:var(--purple)}
+.hero p{color:var(--muted);font-size:15px;max-width:650px}
+.search-panel{background:white;border:1px solid var(--line);
+  border-radius:17px;padding:16px;box-shadow:var(--shadow)}
+.search-row{display:flex;gap:12px;align-items:stretch}
+.search-icon{font-size:21px;padding:12px 0 0 5px;color:var(--purple)}
+textarea{resize:vertical;min-height:74px;flex:1;width:100%;
+  border:0;outline:0;padding:10px 4px;color:var(--ink);
+  background:transparent;font-size:15px}
+.primary{border:0;border-radius:10px;background:var(--purple);color:white;
+  font-weight:750;padding:12px 19px;transition:.2s}
+.primary:hover{background:#5040c6;transform:translateY(-1px)}
+.secondary{border:1px solid var(--line);background:white;border-radius:9px;
+  color:var(--ink);padding:9px 12px;font-weight:650}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{background:#f5f4fb;border:1px solid #eeedf7;border-radius:30px;
+  padding:7px 12px;color:#5c5a79;font-size:12px;font-weight:650}
+.chip:hover{border-color:var(--purple);color:var(--purple)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:25px 0 34px}
+.stat{background:white;border:1px solid var(--line);border-radius:13px;
+  padding:17px 19px}
+.stat-top{display:flex;align-items:center;justify-content:space-between;
+  color:var(--muted);font-size:12px}
+.stat-icon{font-size:19px}
+.stat strong{display:block;font-size:26px;letter-spacing:-1px;margin-top:8px}
+.stat small{color:var(--muted);font-size:11px}
+.content-grid{display:grid;grid-template-columns:235px minmax(0,1fr);gap:25px}
+.sidebar{background:white;border:1px solid var(--line);border-radius:14px;
+  padding:20px;height:max-content}
+.side-head{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:21px}
+.field{margin:19px 0}
+.field label{display:block;font-size:12px;font-weight:750;margin-bottom:8px}
+.field select,.field input{width:100%;border:1px solid var(--line);
+  background:#fff;border-radius:8px;padding:10px;color:var(--ink)}
+.field input[type=range]{padding:0;accent-color:var(--purple)}
+.range-label{display:flex;justify-content:space-between;font-size:12px}
+.checkline{display:flex;align-items:center;gap:8px;margin:10px 0;
+  color:#585970;font-size:12px}
+.checkline input{accent-color:var(--purple)}
+.reset{width:100%;background:white;border:1px solid var(--line);
+  border-radius:8px;padding:10px;color:var(--muted)}
+.results-top{display:flex;justify-content:space-between;align-items:center;
+  gap:12px;margin-bottom:14px}
+.results-top p{font-size:12px;color:var(--muted);margin-top:4px}
+.sort-select{border:1px solid var(--line);border-radius:9px;padding:10px;
+  background:white;color:var(--ink);max-width:155px}
+.result-banner{background:#f0edff;border:1px solid #e5dfff;
+  border-radius:11px;padding:13px 15px;display:flex;gap:10px;
+  align-items:flex-start;margin-bottom:15px;color:#5346b1;font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.resource{background:white;border:1px solid var(--line);border-radius:14px;
+  padding:17px;display:flex;flex-direction:column;gap:13px;
+  box-shadow:0 3px 12px #25234b04;transition:.2s;min-width:0}
+.resource:hover{border-color:#d4cdfb;box-shadow:var(--shadow);
+  transform:translateY(-2px)}
+.resource-top{display:flex;align-items:flex-start;gap:12px}
+.resource-icon{width:46px;height:49px;border-radius:11px;flex-shrink:0;
+  display:grid;place-items:center;font-size:24px;background:#f0edff}
+.resource-icon.green{background:#e5f7ee}
+.resource-icon.blue{background:#e7f2ff}
+.resource-icon.orange{background:#fff0df}
+.resource-info{flex:1;min-width:0}
+.resource-info h3{line-height:1.4}
+.resource-info p{color:var(--muted);font-size:11px;margin-top:4px}
+.save{border:1px solid var(--line);background:white;border-radius:8px;
+  width:34px;height:34px;flex-shrink:0;font-size:16px}
+.save.saved{background:var(--pale);color:var(--purple);border-color:#d8d0ff}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:10px;padding:4px 7px;border-radius:5px;
+  background:#f4f4f9;color:#66677e}
+.tag.match{background:#e5f7ee;color:#137b58}
+.tag.warn{background:#fff1df;color:#9b5a16}
+.description{font-size:12px;color:#62647b;line-height:1.65}
+.why{background:#faf9ff;border:1px solid #efedfa;border-radius:9px;
+  padding:11px;font-size:11px;color:#595574;line-height:1.6}
+.why strong{display:block;color:#5545c2;margin-bottom:3px}
+.card-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;
+  display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-foot small{color:var(--muted);font-size:10px}
+.linkbtn{border:0;background:transparent;color:var(--purple);
+  font-size:12px;font-weight:750;padding:5px}
+.empty{grid-column:1/-1;text-align:center;background:white;
+  border:1px dashed #d9d7e8;border-radius:14px;padding:45px 20px}
+.view{display:none}
+.view.active{display:block}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:23px}
+.panel p{color:var(--muted);margin-top:6px}
+.page-head{margin:8px 0 23px}
+.page-head p{margin-top:6px;color:var(--muted)}
+.library-summary{display:grid;grid-template-columns:repeat(3,1fr);
+  gap:13px;margin:22px 0}
+.budget{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.budget input{border:1px solid var(--line);border-radius:8px;padding:10px;width:130px}
+.progress{height:8px;background:#eeedf5;border-radius:10px;overflow:hidden;margin:12px 0}
+.progress div{height:100%;background:var(--purple);width:0;transition:.3s}
+.table-wrap{overflow-x:auto;margin-top:18px}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:700;background:#fafaff}
+.notice{font-size:12px;padding:13px;background:#fff5e7;color:#87561b;
+  border-radius:9px;margin-top:18px}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:20px 0}
+.metric{border:1px solid var(--line);padding:17px;border-radius:11px}
+.metric strong{display:block;font-size:24px;margin-top:8px}
+.compare-bars{margin-top:22px}
+.bar-row{display:grid;grid-template-columns:130px 1fr 45px;gap:10px;
+  align-items:center;margin:17px 0;font-size:12px}
+.bar{height:12px;border-radius:20px;background:#eeeef6;overflow:hidden}
+.bar div{height:100%;border-radius:20px;background:var(--purple)}
+footer{margin-top:40px;border-top:1px solid var(--line);padding-top:18px;
+  display:flex;justify-content:space-between;gap:15px;color:var(--muted);
+  font-size:11px}
+.modal-backdrop{position:fixed;inset:0;background:#16152d80;z-index:10;
+  display:none;align-items:center;justify-content:center;padding:18px}
+.modal-backdrop.open{display:flex}
+.modal{background:white;border-radius:16px;padding:25px;max-width:550px;
+  width:100%;max-height:85vh;overflow:auto}
+.modal-head{display:flex;justify-content:space-between;gap:12px}
+.modal-close{border:0;background:#f2f1f8;border-radius:8px;width:34px;height:34px}
+.toast{position:fixed;bottom:22px;right:22px;background:#24223e;color:white;
+  border-radius:10px;padding:13px 18px;z-index:20;
+  box-shadow:var(--shadow);display:none}
+.toast.show{display:block}
+@media(max-width:900px){
+ header{padding:0 3%}.brand small{display:none}
+ main{padding:25px 3%}.content-grid{grid-template-columns:205px minmax(0,1fr)}
+ .cards{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+ header{height:auto;min-height:66px;flex-wrap:wrap;padding:12px 4%;gap:10px}
+ nav{order:3;width:100%;overflow-x:auto}
+ .navbtn{white-space:nowrap;padding:8px 10px}
+ .header-right{margin-left:auto}
+ main{padding:20px 4%}
+ .stats,.library-summary,.metric-grid{grid-template-columns:1fr}
+ .stats{gap:9px}.stat{padding:13px 16px}
+ .content-grid{grid-template-columns:1fr}
+ .sidebar{order:1}.results{order:2}
+ .search-row{flex-wrap:wrap}
+ .search-icon{display:none}
+ .search-row .primary{width:100%}
+ .results-top{align-items:flex-start}
+ footer{flex-direction:column}
+ .bar-row{grid-template-columns:90px 1fr 35px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <div class="logo">K</div>
+    <div>Kiwix Discovery<small>OPEN KNOWLEDGE, BETTER FOUND</small></div>
+  </div>
+  <nav aria-label="Main navigation">
+    <button class="navbtn active" data-view="discover">Discover</button>
+    <button class="navbtn" data-view="library">My Library <span id="nav-count"></span></button>
+    <button class="navbtn" data-view="evaluation">Evaluation</button>
+  </nav>
+  <div class="header-right"><span class="muted" style="font-size:11px">Offline-first discovery</span><div class="avatar">K</div></div>
+</header>
+
+<main>
+<section id="discover" class="view active">
+  <div class="hero">
+    <div class="eyebrow">Your intent. Our discovery.</div>
+    <h1>Find knowledge by <span>intent,</span><br>not by filename.</h1>
+    <p>Tell us what you're trying to learn, teach or prepare for.
+       Discover relevant offline knowledge without knowing what to search for.</p>
+  </div>
+
+  <div class="search-panel">
+    <div class="search-row">
+      <div class="search-icon">⌕</div>
+      <textarea id="intent" aria-label="Describe your goal"
+        placeholder="e.g. I need beginner-friendly science material to teach 12-year-olds offline..."></textarea>
+      <button id="search-btn" class="primary">Discover resources ↗</button>
+    </div>
+    <div class="muted" style="font-size:11px;margin-top:5px">TRY A GOAL</div>
+    <div class="chips">
+      <button class="chip" data-prompt="Find beginner-friendly science resources for teaching 12-year-old students">🧪 Teach science</button>
+      <button class="chip" data-prompt="I want to learn French from beginner level">🇫🇷 Learn French</button>
+      <button class="chip" data-prompt="Find offline disaster preparedness and emergency safety resources">🧭 Disaster preparedness</button>
+      <button class="chip" data-prompt="Find useful educational resources that fit a small storage budget">💾 Save storage</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-top">Sample catalogue <span class="stat-icon">▤</span></div><strong id="stat-total">0</strong><small>Demo records loaded</small></div>
+    <div class="stat"><div class="stat-top">Your collection <span class="stat-icon">♧</span></div><strong id="stat-saved">0</strong><small>Saved resources</small></div>
+    <div class="stat"><div class="stat-top">Storage planned <span class="stat-icon">◫</span></div><strong id="stat-size">0 MB</strong><small>Estimated collection size</small></div>
+  </div>
+
+  <div class="content-grid">
+    <aside class="sidebar">
+      <div class="side-head"><h3>Refine discovery</h3><span>☷</span></div>
+      <div class="field"><label for="subject">Subject</label>
+        <select id="subject"><option value="">All subjects</option>
+          <option>Science</option><option>Languages</option><option>Safety</option>
+          <option>Computing</option><option>History</option><option>Mathematics</option>
+        </select>
+      </div>
+      <div class="field"><label for="language">Language</label>
+        <select id="language"><option value="">All languages</option>
+          <option>English</option><option>French</option><option>Hindi</option>
+          <option>Spanish</option><option>German</option>
+        </select>
+      </div>
+      <div class="field"><label for="level">Education level</label>
+        <select id="level"><option value="">Any level</option>
+          <option>Beginner</option><option>School</option><option>Intermediate</option><option>Advanced</option>
+        </select>
+      </div>
+      <div class="field"><label for="type">Content type</label>
+        <select id="type"><option value="">All types</option>
+          <option>Article</option><option>Book</option><option>Video</option>
+          <option>Course</option><option>Reference</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="max-size">Maximum resource size</label>
+        <div class="range-label"><span>Up to</span><strong id="size-label">1000 MB</strong></div>
+        <input type="range" id="max-size" min="1" max="1000" value="1000">
+      </div>
+      <div class="field"><label for="sort">Ranking method</label>
+        <select id="sort"><option value="smart">Intent relevance</option>
+          <option value="baseline">Baseline: keyword match</option>
+          <option value="size">Smallest first</option>
+          <option value="popular">Popularity</option>
+        </select>
+      </div>
+      <label class="checkline"><input id="known-size" type="checkbox"> Only known file sizes</label>
+      <label class="checkline"><input id="complete-meta" type="checkbox"> Prefer complete metadata</label>
+      <button id="reset" class="reset">Reset filters ↺</button>
+    </aside>
+
+    <section class="results">
+      <div class="results-top">
+        <div><h2 id="results-title">Recommended for you</h2>
+          <p id="results-subtitle">Ranked around your goal</p></div>
+        <span id="result-count" class="muted" style="font-size:12px"></span>
+      </div>
+      <div class="result-banner">
+        <span>✦</span>
+        <div><strong>Transparent recommendations</strong><br>
+          Every result explains its match. Scores are demo estimates, not validated semantic-search results.</div>
+      </div>
+      <div id="cards" class="cards"></div>
+    </section>
+  </div>
+</section>
+
+<section id="library" class="view">
+  <div class="page-head"><div class="eyebrow">Your offline collection</div>
+    <h1 style="font-size:35px">My Library<span style="color:var(--purple)">.</span></h1>
+    <p>Plan your collection before downloading. Saved resources persist in this browser.</p></div>
+  <div class="library-summary">
+    <div class="stat"><div class="stat-top">Saved resources</div><strong id="lib-count">0</strong></div>
+    <div class="stat"><div class="stat-top">Estimated total size</div><strong id="lib-size">0 MB</strong></div>
+    <div class="stat"><div class="stat-top">Storage remaining</div><strong id="lib-remaining">500 MB</strong></div>
+  </div>
+  <div class="panel">
+    <h3>Storage budget planner</h3>
+    <p>Choose a maximum size for your planned collection.</p>
+    <div class="budget"><label for="budget">Storage budget (MB)</label>
+      <input type="number" min="1" max="1000000" id="budget" value="500">
+      <button class="primary" id="save-budget">Update budget</button>
+    </div>
+    <div class="progress"><div id="budget-bar"></div></div>
+    <div id="budget-note" class="muted" style="font-size:12px">Your collection is within budget.</div>
+  </div>
+  <div class="panel" style="margin-top:20px">
+    <div class="results-top"><div><h3>Saved resources</h3><p>Review and manage your selection.</p></div>
+      <button id="export" class="secondary">Export manifest ↓</button></div>
+    <div id="library-list"></div>
+  </div>
+</section>
+
+<section id="evaluation" class="view">
+  <div class="page-head"><div class="eyebrow">Measure, compare, improve</div>
+    <h1 style="font-size:35px">Ranking evaluation<span style="color:var(--purple)">.</span></h1>
+    <p>Compare keyword-based baseline ranking with the demo intent-aware ranking.</p>
+  </div>
+  <div class="notice">Demo mode: the figures below are illustrative, calculated from the sample catalogue and its hand-authored relevance labels. They are not experimental evidence of real-world performance.</div>
+  <div class="metric-grid">
+    <div class="metric"><span class="muted">Test queries</span><strong>4</strong><small class="muted">Illustrative query set</small></div>
+    <div class="metric"><span class="muted">Catalogue records</span><strong id="eval-total">0</strong><small class="muted">Local demo dataset</small></div>
+    <div class="metric"><span class="muted">Metadata issues</span><strong id="eval-issues">0</strong><small class="muted">Missing fields in demo</small></div>
+  </div>
+  <div class="panel">
+    <h3>Example ranking comparison</h3>
+    <p>Illustrative normalized relevance scores for a sample query.</p>
+    <div class="compare-bars">
+      <div class="bar-row"><span>Keyword baseline</span><div class="bar"><div style="width:48%;background:#9b97bd"></div></div><strong>48%</strong></div>
+      <div class="bar-row"><span>Intent-aware</span><div class="bar"><div style="width:82%"></div></div><strong>82%</strong></div>
+    </div>
+    <div class="notice">These example percentages are placeholders, not measured metrics. Replace them with Recall@K, Precision@K or nDCG@K calculated from a documented query test set and human relevance judgments.</div>
+  </div>
+  <div class="panel" style="margin-top:20px">
+    <h3>Evaluation checklist</h3>
+    <p>Evidence to collect before presenting ranking quality claims.</p>
+    <div class="checkline"><input type="checkbox"> Create a fixed set of representative user-intent queries</div>
+    <div class="checkline"><input type="checkbox"> Label catalogue resources for relevance to each query</div>
+    <div class="checkline"><input type="checkbox"> Evaluate baseline and improved ranking on the same test set</div>
+    <div class="checkline"><input type="checkbox"> Test missing, duplicated and inconsistent metadata</div>
+    <div class="checkline"><input type="checkbox"> Report limitations and catalogue coverage</div>
+  </div>
+</section>
+
+<footer><span>Kiwix Discovery · Hackathon prototype</span>
+  <span>Local demo data · No cloud AI API required</span></footer>
+</main>
+</div>
+
+<div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-head"><div><div class="eyebrow">Resource details</div><h2 id="modal-title" style="margin-top:8px"></h2></div>
+      <button class="modal-close" id="modal-close" aria-label="Close details">✕</button></div>
+    <div id="modal-content" style="margin-top:18px"></div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+"use strict";
+
+/*
+ * KIWIX DISCOVERY — FRONTEND SERVICE ADAPTER
+ *
+ * Teammate integration:
+ * Replace the mock methods in DiscoveryService with fetch() calls to the
+ * Python backend. Keep the UI rendering and interaction code unchanged.
+ * No real backend endpoints are assumed in this prototype.
+ */
+
+const MOCK_CATALOG = [
+ {id:"r1",title:"Science for Young Learners",subject:"Science",language:"English",
+  level:"School",type:"Book",size:85,popularity:90,publisher:"Demo Educational Press",
+  updated:"2025",emoji:"🧪",color:"",description:"An introductory guide to basic scientific concepts, experiments and the natural world.",
+  keywords:["science","teach","teaching","children","12-year-olds","school","experiments","education","learning"],
+  meta:["title","description","language","size","subject"],relevance:{science:5,teach:5}},
+ {id:"r2",title:"The Natural World: Illustrated Reference",subject:"Science",language:"English",
+  level:"Beginner",type:"Reference",size:210,popularity:84,publisher:"Demo Knowledge Library",
+  updated:"2024",emoji:"🌿",color:"green",description:"Illustrated explanations of plants, animals, ecosystems and everyday biology.",
+  keywords:["nature","biology","science","environment","plants","animals","children"],
+  meta:["title","description","language","size","subject","publisher"],relevance:{science:5}},
+ {id:"r3",title:"French from Zero",subject:"Languages",language:"French",
+  level:"Beginner",type:"Course",size:120,popularity:93,publisher:"Demo Language Project",
+  updated:"2025",emoji:"🇫🇷",color:"blue",description:"A beginner-oriented introduction to French vocabulary, grammar and everyday conversation.",
+  keywords:["french","language","learn","beginner","vocabulary","grammar","conversation"],
+  meta:["title","description","language","size","subject","publisher"],relevance:{french:5}},
+ {id:"r4",title:"French Vocabulary Pocket Guide",subject:"Languages",language:"French",
+  level:"Beginner",type:"Book",size:18,popularity:79,publisher:"Demo Open Library",
+  updated:"2023",emoji:"📘",color:"blue",description:"A compact vocabulary reference for common words, phrases and everyday situations.",
+  keywords:["french","language","learn","vocabulary","small","compact","budget","beginner"],
+  meta:["title","description","language","size","subject"],relevance:{french:4,budget:5}},
+ {id:"r5",title:"Emergency Preparedness Handbook",subject:"Safety",language:"English",
+  level:"Beginner",type:"Reference",size:32,popularity:91,publisher:"Demo Safety Initiative",
+  updated:"2025",emoji:"🧭",color:"orange",description:"General emergency planning, household preparedness and safety checklists.",
+  keywords:["disaster","emergency","preparedness","safety","planning","survival","offline"],
+  meta:["title","description","language","size","subject","publisher"],relevance:{disaster:5}},
+ {id:"r6",title:"First Aid and Emergency Basics",subject:"Safety",language:"English",
+  level:"School",type:"Article",size:12,popularity:87,publisher:"Demo Public Information",
+  updated:"2024",emoji:"🩺",color:"green",description:"Introductory safety information and an overview of basic emergency response.",
+  keywords:["disaster","emergency","first aid","safety","health","preparedness"],
+  meta:["title","description","language","size","subject"],relevance:{disaster:4,budget:3}},
+ {id:"r7",title:"Computing Without Internet",subject:"Computing",language:"English",
+  level:"Intermediate",type:"Book",size:340,popularity:76,publisher:"Demo Computing Archive",
+  updated:"2022",emoji:"💻",color:"blue",description:"An introduction to computing concepts and offline learning environments.",
+  keywords:["computing","computer","offline","technology","internet","education"],
+  meta:["title","description","language","size","subject"],relevance:{}},
+ {id:"r8",title:"Essential Mathematics",subject:"Mathematics",language:"English",
+  level:"School",type:"Book",size:95,popularity:88,publisher:"Demo Learning Collection",
+  updated:"2025",emoji:"📐",color:"",description:"A reference covering arithmetic, algebra and core school mathematics.",
+  keywords:["math","mathematics","algebra","school","education","learning"],
+  meta:["title","description","language","size","subject","publisher"],relevance:{}},
+ {id:"r9",title:"World History: A Short Introduction",subject:"History",language:"English",
+  level:"Beginner",type:"Book",size:155,popularity:73,publisher:"",updated:"",
+  emoji:"🌍",color:"orange",description:"A broad introductory survey of major events and civilizations in world history.",
+  keywords:["history","world","civilization","learning","education"],
+  meta:["title","description","language","size","subject"],relevance:{}},
+ {id:"r10",title:"Basic Science Articles Collection",subject:"Science",language:"English",
+  level:"School",type:"Article",size:null,popularity:70,publisher:"",updated:"",
+  emoji:"🔬",color:"green",description:"A sample collection of introductory science articles. Some catalogue metadata is unavailable.",
+  keywords:["science","articles","school","education","teach","children"],
+  meta:["title","subject","language"],relevance:{science:3,teach:3}},
+ {id:"r11",title:"Everyday French Conversations",subject:"Languages",language:"French",
+  level:"Intermediate",type:"Video",size:450,popularity:82,publisher:"Demo Language Project",
+  updated:"2024",emoji:"🎧",color:"orange",description:"Sample conversation lessons for practicing listening and everyday French expressions.",
+  keywords:["french","learn","language","conversation","listening","video"],
+  meta:["title","description","language","size","subject","publisher"],relevance:{french:4}},
+ {id:"r12",title:"Compact Disaster Planning Checklist",subject:"Safety",language:"Hindi",
+  level:"Beginner",type:"Article",size:4,popularity:66,publisher:"",updated:"2023",
+  emoji:"📋",color:"green",description:"A compact checklist-style resource for planning ahead for emergencies.",
+  keywords:["disaster","safety","preparedness","emergency","compact","small","budget","hindi"],
+  meta:["title","description","language","size","subject"],relevance:{disaster:3,budget:5}}
+];
+
+const STORAGE = {
+ library:"kiwix-discovery-library-v1",
+ budget:"kiwix-discovery-budget-v1"
+};
+
+const safeRead = (key, fallback) => {
+  try { const v=localStorage.getItem(key); return v===null?fallback:JSON.parse(v); }
+  catch { return fallback; }
+};
+
+const state = {
+ query:"",
+ subject:"",
+ language:"",
+ level:"",
+ type:"",
+ maxSize:1000,
+ knownSize:false,
+ completeMeta:false,
+ sort:"smart",
+ view:"discover",
+ library:safeRead(STORAGE.library,[]),
+ budget:Number(safeRead(STORAGE.budget,500)) || 500,
+ results:[]
+};
+
+/*
+ * The API boundary. Current implementation is local and deterministic.
+ * Later, your teammate can replace these methods with actual API requests.
+ */
+const DiscoveryService = {
+ async search(query, filters) {
+   // Replace with: return fetch(API_URL + "/search", ...).then(r=>r.json())
+   return MOCK_CATALOG.map(item=>({
+     ...item,
+     score:scoreResource(item,query,"smart"),
+     baselineScore:scoreResource(item,query,"baseline")
+   }));
+ },
+ async getResource(id) {
+   // Replace with: GET /resources/{id}
+   return MOCK_CATALOG.find(x=>x.id===id) || null;
+ }
+};
+
+function normalize(s) {
+ return String(s||"").toLowerCase().normalize("NFD")
+   .replace(/[\u0300-\u036f]/g,"");
+}
+function tokens(s) {
+ return normalize(s).split(/[^a-z0-9]+/).filter(x=>x.length>1);
+}
+function inferIntent(query) {
+ const q=normalize(query);
+ if(/french|francais|français/.test(q))return "french";
+ if(/disaster|emergency|preparedness|safety/.test(q))return "disaster";
+ if(/budget|storage|small file|compact|space/.test(q))return "budget";
+ if(/science|teach|children|12.year|experiment/.test(q))return "science";
+ return "general";
+}
+function scoreResource(item,query,method="smart") {
+ const qTokens=[...new Set(tokens(query))];
+ const searchable=tokens(item.title+" "+item.description+" "+
+   item.subject+" "+item.language+" "+item.level+" "+item.type+" "+
+   item.keywords.join(" ")+" "+item.publisher);
+ const hits=qTokens.filter(t=>searchable.some(s=>s.includes(t)||t.includes(s))).length;
+ const keywordScore=qTokens.length?hits/qTokens.length:0.25;
+ if(method==="baseline")return keywordScore;
+ const intent=inferIntent(query);
+ const intentScore=Number(item.relevance[intent]||0)/5;
+ const sizeBonus=intent==="budget"&&item.size!==null
+   ? Math.max(0,1-item.size/1000)*0.12:0;
+ const metaBonus=item.meta.length/6*0.05;
+ // Deterministic local heuristic, NOT an embedding or trained semantic model.
+ return Math.min(1,0.58*intentScore+0.32*keywordScore+metaBonus+sizeBonus);
+}
+function formatSize(mb) {
+ if(mb===null||mb===undefined)return "Unknown size";
+ if(mb<1)return Math.round(mb*1024)+" KB";
+ if(mb>=1024)return (mb/1024).toFixed(2)+" GB";
+ return mb+" MB";
+}
+function escapeHTML(value) {
+ return String(value??"").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ })[c]);
+}
+function byId(id){return document.getElementById(id);}
+function saved(id){return state.library.includes(id);}
+function persistLibrary(){
+ localStorage.setItem(STORAGE.library,JSON.stringify(state.library));
+}
+function notify(message){
+ const toast=byId("toast");toast.textContent=message;toast.classList.add("show");
+ clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),2600);
+}
+function activeItems(){
+ let list=[...state.results];
+ if(state.subject)list=list.filter(x=>x.subject===state.subject);
+ if(state.language)list=list.filter(x=>x.language===state.language);
+ if(state.level)list=list.filter(x=>x.level===state.level);
+ if(state.type)list=list.filter(x=>x.type===state.type);
+ list=list.filter(x=>x.size!==null?x.size<=state.maxSize:!state.knownSize);
+ if(state.knownSize)list=list.filter(x=>x.size!==null);
+ if(state.completeMeta)list=list.filter(x=>x.meta.length>=5);
+ if(state.sort==="size")list.sort((a,b)=>(a.size??Infinity)-(b.size??Infinity));
+ else if(state.sort==="popular")list.sort((a,b)=>b.popularity-a.popularity);
+ else if(state.sort==="baseline")list.sort((a,b)=>b.baselineScore-a.baselineScore);
+ else list.sort((a,b)=>b.score-a.score);
+ return list;
+}
+function explain(item){
+ const intent=inferIntent(state.query);
+ const relevant=item.relevance[intent]||0;
+ const reasons=[];
+ if(relevant>=4){
+   if(intent==="science")reasons.push("Relevant to introductory science and teaching goals.");
+   if(intent==="french")reasons.push("Relevant to French language learning.");
+   if(intent==="disaster")reasons.push("Covers emergency preparedness or safety.");
+   if(intent==="budget")reasons.push("Compact file size helps with storage constraints.");
+ }
+ const qHits=tokens(state.query).filter(t=>
+   tokens(item.title+" "+item.description+" "+item.keywords.join(" ")).includes(t));
+ if(qHits.length)reasons.push("Matches query terms: "+[...new Set(qHits)].slice(0,4).join(", ")+".");
+ if(!reasons.length)reasons.push("Matched available catalogue keywords and metadata; inspect the description for fit.");
+ if(item.meta.length<5)reasons.push("Some metadata is missing, so relevance may be less reliable.");
+ if(item.size===null)reasons.push("File size is unknown; storage calculations exclude this resource.");
+ return reasons.join(" ");
+}
+function renderCards(){
+ const list=activeItems();
+ byId("result-count").textContent=list.length+" resources";
+ byId("cards").innerHTML=list.length?list.map(item=>{
+  const score=Math.round((state.sort==="baseline"?item.baselineScore:item.score)*100);
+  const missing=6-item.meta.length;
+  return `<article class="resource">
+    <div class="resource-top">
+      <div class="resource-icon ${escapeHTML(item.color)}">${item.emoji}</div>
+      <div class="resource-info"><h3>${escapeHTML(item.title)}</h3>
+      <p>${escapeHTML(item.subject)} · ${escapeHTML(item.language)} · ${escapeHTML(item.type)}</p></div>
+      <button class="save ${saved(item.id)?"saved":""}" data-save="${item.id}"
+       aria-label="${saved(item.id)?"Remove from":"Add to"} library">${saved(item.id)?"♥":"♡"}</button>
+    </div>
+    <div class="tags"><span class="tag match">${score}% demo match</span>
+      <span class="tag">${escapeHTML(item.level)}</span>
+      <span class="tag">${formatSize(item.size)}</span>
+      ${missing>1?'<span class="tag warn">Metadata incomplete</span>':""}
+    </div>
+    <p class="description">${escapeHTML(item.description)}</p>
+    <div class="why"><strong>✦ Why this resource?</strong>${escapeHTML(explain(item))}</div>
+    <div class="card-foot"><small>Popularity: ${item.popularity}/100</small>
+      <button class="linkbtn" data-detail="${item.id}">Details ↗</button></div>
+  </article>`;
+ }).join(""):`<div class="empty"><div style="font-size:28px">⌕</div>
+    <h3 style="margin:10px">No matching resources</h3>
+    <p class="muted" style="margin:8px 0 15px">Try a broader goal or remove some filters.</p>
+    <button class="secondary" id="empty-reset">Reset filters</button></div>`;
+ byId("stat-total").textContent=MOCK_CATALOG.length;
+ byId("stat-saved").textContent=state.library.length;
+ byId("stat-size").textContent=formatSize(totalSavedSize());
+ byId("eval-total").textContent=MOCK_CATALOG.length;
+ byId("eval-issues").textContent=MOCK_CATALOG.filter(x=>x.meta.length<5).length;
+ byId("results-title").textContent=state.query?"Discovery results":"Recommended for you";
+ byId("results-subtitle").textContent=state.query?
+   "Goal: "+state.query:"Start with an example goal or describe your own";
+}
+function totalSavedSize(){
+ return state.library.reduce((sum,id)=>{
+  const item=MOCK_CATALOG.find(x=>x.id===id);
+  return sum+(item&&item.size!==null?item.size:0);
+ },0);
+}
+function renderLibrary(){
+ const items=state.library.map(id=>MOCK_CATALOG.find(x=>x.id===id)).filter(Boolean);
+ const total=totalSavedSize(),remaining=state.budget-total;
+ byId("lib-count").textContent=items.length;
+ byId("lib-size").textContent=formatSize(total);
+ byId("lib-remaining").textContent=formatSize(remaining);
+ byId("budget").value=state.budget;
+ byId("budget-bar").style.width=Math.min(100,total/state.budget*100)+"%";
+ byId("budget-bar").style.background=remaining<0?"#d84b5c":"var(--purple)";
+ byId("budget-note").textContent=remaining<0?
+  "Over budget by "+formatSize(-remaining)+". Consider removing resources.":
+  "You have "+formatSize(remaining)+" of planned storage remaining.";
+ byId("nav-count").textContent=items.length?"("+items.length+")":"";
+ byId("library-list").innerHTML=items.length?`<div class="table-wrap"><table>
+ <thead><tr><th>Resource</th><th>Language</th><th>Size</th><th>Action</th></tr></thead>
+ <tbody>${items.map(x=>`<tr><td><strong>${escapeHTML(x.title)}</strong><br>
+ <span class="muted">${escapeHTML(x.subject)}</span></td><td>${escapeHTML(x.language)}</td>
+ <td>${formatSize(x.size)}</td><td><button class="linkbtn" data-save="${x.id}">Remove</button></td></tr>`).join("")}</tbody>
+ </table></div>`:`<div class="empty"><h3>Your library is empty</h3>
+ <p class="muted" style="margin:8px 0 15px">Discover resources and save the ones you need.</p>
+ <button class="primary" data-goto="discover">Explore resources</button></div>`;
+}
+async function runSearch(){
+ state.query=byId("intent").value.trim();
+ if(!state.query){notify("Describe your goal or choose an example.");byId("intent").focus();return;}
+ byId("results-subtitle").textContent="Searching the local demo catalogue…";
+ state.results=await DiscoveryService.search(state.query,{});
+ renderCards();
+}
+function toggleSave(id){
+ if(saved(id)){
+  state.library=state.library.filter(x=>x!==id);notify("Removed from My Library.");
+ }else{
+  state.library.push(id);notify("Added to My Library.");
+ }
+ persistLibrary();renderCards();renderLibrary();
+}
+async function openDetails(id){
+ const item=await DiscoveryService.getResource(id);if(!item)return;
+ byId("modal-title").textContent=item.title;
+ byId("modal-content").innerHTML=`
+  <div class="tags"><span class="tag">${escapeHTML(item.subject)}</span>
+  <span class="tag">${escapeHTML(item.language)}</span><span class="tag">${escapeHTML(item.type)}</span></div>
+  <p style="margin-top:15px;line-height:1.8">${escapeHTML(item.description)}</p>
+  <h3 style="margin-top:20px">Why it was recommended</h3>
+  <p style="margin-top:8px;line-height:1.8">${escapeHTML(explain(item))}</p>
+  <h3 style="margin-top:20px">Available metadata</h3>
+  <div class="table-wrap"><table><tbody>
+  <tr><td>Education level</td><td>${escapeHTML(item.level||"Unknown")}</td></tr>
+  <tr><td>Estimated size</td><td>${formatSize(item.size)}</td></tr>
+  <tr><td>Publisher</td><td>${escapeHTML(item.publisher||"Not provided")}</td></tr>
+  <tr><td>Updated</td><td>${escapeHTML(item.updated||"Unknown")}</td></tr>
+  <tr><td>Metadata completeness</td><td>${item.meta.length}/6 tracked fields</td></tr>
+  </tbody></table></div>
+  <p class="notice">This is a demonstration record. Actual download links, catalogue identifiers and source metadata must come from the real catalogue.</p>
+  <button class="primary" style="width:100%;margin-top:16px" data-save="${item.id}">
+  ${saved(item.id)?"Remove from My Library":"Add to My Library"}</button>`;
+ byId("modal-backdrop").classList.add("open");
+}
+function switchView(view){
+ state.view=view;
+ document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.id===view));
+ document.querySelectorAll(".navbtn").forEach(el=>el.classList.toggle("active",el.dataset.view===view));
+ if(view==="library")renderLibrary();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+byId("search-btn").addEventListener("click",runSearch);
+byId("intent").addEventListener("keydown",e=>{
+ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();runSearch();}
+});
+document.querySelectorAll("[data-prompt]").forEach(btn=>btn.addEventListener("click",()=>{
+ byId("intent").value=btn.dataset.prompt;runSearch();
+}));
+document.querySelectorAll("[data-view]").forEach(btn=>btn.addEventListener("click",()=>switchView(btn.dataset.view)));
+["subject","language","level","type"].forEach(id=>byId(id).addEventListener("change",()=>{
+ state[id]=byId(id).value;renderCards();
+}));
+byId("max-size").addEventListener("input",e=>{
+ state.maxSize=Number(e.target.value);byId("size-label").textContent=state.maxSize+" MB";renderCards();
+});
+byId("known-size").addEventListener("change",e=>{state.knownSize=e.target.checked;renderCards();});
+byId("complete-meta").addEventListener("change",e=>{state.completeMeta=e.target.checked;renderCards();});
+byId("sort").addEventListener("change",e=>{state.sort=e.target.value;renderCards();});
+byId("reset").addEventListener("click",()=>{
+ ["subject","language","level","type"].forEach(id=>{byId(id).value="";state[id]="";});
+ byId("max-size").value=1000;byId("size-label").textContent="1000 MB";
+ byId("known-size").checked=false;byId("complete-meta").checked=false;
+ byId("sort").value="smart";
+ state.maxSize=1000;state.knownSize=false;state.completeMeta=false;state.sort="smart";
+ renderCards();
+});
+byId("save-budget").addEventListener("click",()=>{
+ const val=Number(byId("budget").value);
+ if(!Number.isFinite(val)||val<=0){notify("Enter a valid positive budget.");return;}
+ state.budget=val;localStorage.setItem(STORAGE.budget,JSON.stringify(val));
+ renderLibrary();notify("Storage budget updated.");
+});
+byId("export").addEventListener("click",()=>{
+ const manifest=state.library.map(id=>{
+  const x=MOCK_CATALOG.find(r=>r.id===id);
+  return {id:x.id,title:x.title,subject:x.subject,language:x.language,
+    estimated_size_mb:x.size,publisher:x.publisher||null};
+ });
+ const blob=new Blob([JSON.stringify({format:"kiwix-discovery-demo-manifest",
+  budget_mb:state.budget,resources:manifest},null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="my-kiwix-library.json";a.click();URL.revokeObjectURL(url);
+});
+byId("modal-close").addEventListener("click",()=>byId("modal-backdrop").classList.remove("open"));
+byId("modal-backdrop").addEventListener("click",e=>{
+ if(e.target===byId("modal-backdrop"))byId("modal-backdrop").classList.remove("open");
+});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape")byId("modal-backdrop").classList.remove("open");
+});
+document.addEventListener("click",e=>{
+ const save=e.target.closest("[data-save]");
+ if(save){toggleSave(save.dataset.save);if(byId("modal-backdrop").classList.contains("open"))openDetails(save.dataset.save);return;}
+ const detail=e.target.closest("[data-detail]");
+ if(detail){openDetails(detail.dataset.detail);return;}
+ const goto=e.target.closest("[data-goto]");
+ if(goto){switchView(goto.dataset.goto);return;}
+ if(e.target.id==="empty-reset")byId("reset").click();
+});
+
+// Start with a useful example query; all functionality works without the backend.
+byId("intent").value="Find beginner-friendly science resources for teaching 12-year-old students";
+state.query=byId("intent").value;
+DiscoveryService.search(state.query,{}).then(results=>{
+ state.results=results;renderCards();renderLibrary();
+});
+</script>
+</body>
+</html>
